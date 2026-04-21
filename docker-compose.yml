@@ -62,7 +62,7 @@ services:
       - loki
       - tempo
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin           #Login password set
+      - GF_SECURITY_ADMIN_PASSWORD=admin           # Login password set
 
 volumes:
   tempo-data:
