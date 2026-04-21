@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 10s   #Every 10 seconds, Prometheus will pull metrics
+scrape_configs:          #From which services do you want to collect data
+  - job_name: 'app'
+    static_configs:
+      - targets: ['app:8080']
+

@@ -1,0 +1,69 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - tempo
+      - promtail
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4318  #telemetry data(traces/metrics) send to tempo
+    labels:
+      - "logging=promtail" #promtail will collect container logs 
+    logging:
+      driver: "json-file" #logs store in json format
+
+  loadgen:
+    build:
+      context: .
+      dockerfile: loadgen.Dockerfile
+    depends_on:
+      - app
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  tempo:               #Trace storage system
+    image: grafana/tempo:latest
+    ports:
+      - "3200:3200"
+      - "4318:4318"        #receive OpenTelemetry data 
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+    command: [ "-config.file=/etc/tempo.yaml" ]  # Run Custom config 
+
+  loki:               #Logs database
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+
+  promtail:               #Log Collector
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - ./promtail-config.yml:/etc/promtail/promtail.yaml
+    command: -config.file=/etc/promtail/promtail.yaml        #Custom config run
+
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin           #Login password set
+
+volumes:
+  tempo-data:
+
