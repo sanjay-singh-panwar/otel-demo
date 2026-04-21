@@ -1,5 +1,5 @@
 #This will tell where will Grafana receive and store tempo traces
-
+#this is termpo used for receive and store tempo traces
 auth_enabled: false
 
 server:
